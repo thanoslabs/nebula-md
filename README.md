@@ -1,5 +1,9 @@
 # nebula.md
 
+[![CI](https://github.com/thanoslabs/nebula-md/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/thanoslabs/nebula-md/actions/workflows/deploy.yml)
+[![Release](https://img.shields.io/github/v/release/thanoslabs/nebula-md?sort=semver&display_name=tag)](https://github.com/thanoslabs/nebula-md/releases/latest)
+[![Docs site](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github)](https://thanoslabs.github.io/nebula-md/)
+
 A static-site-generator for my obsidian vault.
 
 ## Goals
