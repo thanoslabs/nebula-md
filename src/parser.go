@@ -291,7 +291,7 @@ func processCallouts(htmlBody []byte) []byte {
 		// If afterClose has only whitespace/newlines, the content is inline
 		// If there are <p> tags between m[1]+closeP and bqEnd, those are the content paragraphs
 		contentStart := m[0] + closeP + 5 // after </p>
-		
+
 		// Content extraction - stop at nested blockquotes
 		// Find where content ends (before any nested blockquote)
 		contentEnd := bqEnd
@@ -301,9 +301,9 @@ func processCallouts(htmlBody []byte) []byte {
 			nestedBQ := strings.Index(s2, "<blockquote>")
 			contentEnd = contentStart + nestedBQ
 		}
-		
+
 		afterClose := strings.TrimLeft(string(htmlBody[contentStart:contentEnd]), "\n\r ")
-		
+
 		// Extract inline content between ] and first </p> (before any separate <p> blocks)
 		// This handles cases where content is on the same line as the header
 		inlineContent := strings.TrimSpace(string(htmlBody[m[1] : m[0]+closeP]))
@@ -311,7 +311,7 @@ func processCallouts(htmlBody []byte) []byte {
 		if strings.HasSuffix(inlineContent, "+") || strings.HasSuffix(inlineContent, "-") {
 			inlineContent = strings.TrimSpace(inlineContent[:len(inlineContent)-1])
 		}
-		
+
 		fullContent := ""
 		remaining := afterClose
 		for {

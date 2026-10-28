@@ -60,13 +60,13 @@ const (
 
 // SiteConfig holds site-level configuration from .env or environment variables.
 type SiteConfig struct {
-	SiteName              string    // displayed in header
-	SiteTheme             string    // "dark" or "light"
-	IgnoredDirs           []string  // directory names to skip during vault walk
-	GraphNodeSizeByEdges  bool      // size graph nodes by edge count
+	SiteName             string    // displayed in header
+	SiteTheme            string    // "dark" or "light"
+	IgnoredDirs          []string  // directory names to skip during vault walk
+	GraphNodeSizeByEdges bool      // size graph nodes by edge count
 	ShowLinks            bool      // show links/backlinks sidebar section
 	FeatureAutoFolderMOC bool      // auto-add sibling links to folder index pages
-	GraphMode             GraphMode // "2d" (default) or "nebula" (3D galaxy)
+	GraphMode            GraphMode // "2d" (default) or "nebula" (3D galaxy)
 	CleanURLs            bool      // emit extensionless internal links (requires host that serves /foo as foo.html, e.g. GitHub Pages)
 }
 

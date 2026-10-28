@@ -1250,7 +1250,7 @@ window.navTree = %[11]s;
 </script>
 </body>
 </html>`,
-	title, css, title,
+		title, css, title,
 		pageGraph.ReadingTime,
 		pageGraph.Date,
 		htmlContent,
@@ -1308,15 +1308,15 @@ func buildBacklinksHTML(pg *PageGraph, showLinks bool) string {
 	if len(pg.Links) > 0 {
 		s += "<h3>Links</h3><ul>"
 		for _, l := range pg.Links {
-		 cls := map[bool]string{true: " class=\"stub-link\""}[l.Stub]
-		 s += fmt.Sprintf("<li><a href=\"%s\"%s>%s</a>%s</li>", l.Href, cls, l.Title, map[bool]string{true: " *(stub)"}[l.Stub])
+			cls := map[bool]string{true: " class=\"stub-link\""}[l.Stub]
+			s += fmt.Sprintf("<li><a href=\"%s\"%s>%s</a>%s</li>", l.Href, cls, l.Title, map[bool]string{true: " *(stub)"}[l.Stub])
 		}
 		s += "</ul>"
 	}
 	if len(pg.Backlinks) > 0 {
 		s += "<h3>Backlinks</h3><ul>"
 		for _, bl := range pg.Backlinks {
-		 s += fmt.Sprintf("<li><a href=\"%s\">%s</a></li>", bl.Href, bl.Title)
+			s += fmt.Sprintf("<li><a href=\"%s\">%s</a></li>", bl.Href, bl.Title)
 		}
 		s += "</ul>"
 	}
@@ -2952,10 +2952,10 @@ func writeFullGraphViewerNebula(graphDir string, graphJSON []byte, siteTheme str
     </script>
 </body>
 </html>`
-		data := strings.Replace(nebulaHTML, "{{GRAPH_JSON}}", string(graphJSON), 1)
-		data = strings.Replace(data, "{{EXT}}", linkExt, 1)
-		err := os.WriteFile(filepath.Join(graphDir, "nebula.html"), []byte(data), 0644)
-		if err != nil {
-			fmt.Printf("Error writing graph nebula.html: %v\n", err)
-		}
+	data := strings.Replace(nebulaHTML, "{{GRAPH_JSON}}", string(graphJSON), 1)
+	data = strings.Replace(data, "{{EXT}}", linkExt, 1)
+	err := os.WriteFile(filepath.Join(graphDir, "nebula.html"), []byte(data), 0644)
+	if err != nil {
+		fmt.Printf("Error writing graph nebula.html: %v\n", err)
 	}
+}
