@@ -104,15 +104,13 @@ jobs:
           path: nebula
           sparse-checkout: |
             src/
-            go.mod
-            go.sum
             .env.example
           sparse-checkout-cone-mode: false
 
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.23"
+          go-version-file: nebula/src/go.mod
           cache: true
           cache-dependency-path: nebula/go.sum
 
