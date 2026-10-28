@@ -87,7 +87,7 @@ func buildSearchIndex(vaultDir string) []SearchEntry {
 		if err != nil {
 			return nil
 		}
-		tags := extractTags(data) // extract tags from raw content (before stripping)
+		tags := extractTags(data)   // extract tags from raw content (before stripping)
 		title := extractTitle(data) // extract frontmatter/H1 title from raw content
 		data = removeFrontmatter(data)
 		data = stripMermaidBlocks(data)
@@ -137,7 +137,7 @@ type NavNode struct {
 	Name      string     `json:"name"`
 	Path      string     `json:"path"`
 	Href      string     `json:"href"`
-	IndexHref string    `json:"indexHref,omitempty"`
+	IndexHref string     `json:"indexHref,omitempty"`
 	Children  []*NavNode `json:"children,omitempty"`
 }
 
@@ -404,6 +404,7 @@ func buildGraph(vaultDir string) (*Graph, map[string][]string, map[string]string
 	os.WriteFile(filepath.Join(vaultDir, "..", "output", "backlinks.json"), bJSON, 0644)
 	return g, backlinks, pageTitles, nil
 }
+
 // dedupeEdges collapses parallel edges so each pair of nodes is connected by a single
 // edge in the rendered graph, regardless of direction or how many links exist between
 // them (A→B, B→A, and repeated A→B all become one). Backlinks are computed from the
