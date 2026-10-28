@@ -1,0 +1,112 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Explicit version to release (bare X.Y.Z, e.g. 1.2.3). Omit to derive the next version from PR labels."
+        required: false
+        type: string
+
+# Needed to push the release tag and create the GitHub release.
+permissions:
+  contents: write
+  pull-requests: read
+
+# Serialize releases so back-to-back merges to main don't race on tag creation.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+        with:
+          fetch-depth: 0 # full history + existing tags are required to compute the next version
+
+      - name: Compute next version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          set -euo pipefail
+
+          # Manual release: explicit version (bare X.Y.Z, no 'v' prefix).
+          if [[ -n "${INPUT_VERSION:-}" ]]; then
+            if [[ ! "${INPUT_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error::Version must be bare SemVer (X.Y.Z, no 'v' prefix), got '${INPUT_VERSION}'"
+              exit 1
+            fi
+            if git rev-parse -q --verify "refs/tags/${INPUT_VERSION}" >/dev/null; then
+              echo "::error::Tag '${INPUT_VERSION}' already exists"
+              exit 1
+            fi
+            echo "version=${INPUT_VERSION}" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          # Automatic release: bump level comes from the merged PR's labels.
+          # 'major' takes precedence over 'minor'; anything else (or no PR) -> patch.
+          BASE="$(git tag --list | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)"
+          BASE="${BASE:-0.0.0}"
+
+          LABELS="$(gh api --jq 'if length > 0 then [.[0].labels[].name] | join(",") else "" end' \
+            "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" 2>/dev/null || true)"
+
+          # Exact label match within the comma-separated list (avoids false
+          # positives from labels like 'pre-major' or 'semver-minor').
+          LEVEL="patch"
+          if [[ ",${LABELS}," == *",major,"* ]]; then
+            LEVEL="major"
+          elif [[ ",${LABELS}," == *",minor,"* ]]; then
+            LEVEL="minor"
+          fi
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${BASE}"
+          case "${LEVEL}" in
+            major) VERSION="$((MAJOR + 1)).0.0" ;;
+            minor) VERSION="${MAJOR}.$((MINOR + 1)).0" ;;
+            patch) VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))" ;;
+          esac
+
+          echo "base=${BASE} labels=[${LABELS:-none}] bump=${LEVEL} version=${VERSION}"
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+
+      - name: Tag release
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+          git tag -a "${VERSION}" -m "Release ${VERSION}"
+          git push origin "refs/tags/${VERSION}"
+
+      # A GitHub release publishes an immutable version of the reusable deploy.yml
+      # workflow at this tag. Consumers can pin @X.Y.Z to keep their builds stable.
+
+      # TODO(project): build and publish release artifacts for this version, e.g.:
+      #   - docker build -t <registry>/<image>:${VERSION} . && docker push <registry>/<image>:${VERSION}
+      #   - go build / goreleaser release
+      #   - npm publish / cargo publish
+      # Then attach files to the release with: gh release upload "${VERSION}" <files...>
+      #
+      # NOTE: pushes/creations made with the default GITHUB_TOKEN do NOT trigger
+      # other workflows (e.g. on: push of tags, on: release). If release events
+      # must fan out to further automation, use a PAT or a GitHub App token
+      # (see actions/create-github-app-token in the Renovate workflow).
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "${VERSION}" \
+            --title "${VERSION}" \
+            --generate-notes
