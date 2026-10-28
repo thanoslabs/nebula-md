@@ -1,0 +1,25 @@
+name: Format existing Go sources (temporary)
+on:
+  push:
+    branches: [feat/ci-semver-releases]
+    paths: [.github/workflows/format-once.yml]
+permissions:
+  contents: write
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/ci-semver-releases
+          persist-credentials: true
+      - name: Apply gofmt
+        run: |
+          gofmt -w src/parser.go src/graph.go src/templates.go src/main.go
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/parser.go src/graph.go src/templates.go src/main.go
+          if ! git diff --cached --quiet; then
+            git commit -m 'style: gofmt existing Go source files'
+            git push origin HEAD:feat/ci-semver-releases
+          fi
